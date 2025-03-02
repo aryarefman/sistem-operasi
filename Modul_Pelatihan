@@ -1,0 +1,113 @@
+-> ls : menampilkan folder dan file di dalam direktori saat ini
+-> ls -a : menampilkan semua folder dan file (termasuk yang tersembunyi)
+-> ls -la : lebih detail dari pada -a
+-> ls -l <file> : melihat kondisi file
+-> ls -l <folder> : melihat setiap kondisi file di dalam folder
+-> ls -ld <folder> : melihat informasi/kondisi direktori
+-> ls </path/folde> : memeriksa isi folder
+-> cd - : kembali ke folder sebelumnya
+-> rm -rf <folder> : menghapus folder beserta isinya tanpa konfirmasi "r(recursive) -> agar bisa menghapus subfolder"
+-> rm -r <folder> : menghapus folder dengan konfiramasi
+-> rm <file> : menghapus dengan konfirmasi
+-> rm -f <file> : menghapus tanpa konfirmasi
+-> tree : memeriksa folder dan file yang ada (berbentuk cabang)
+-> cat /etc/passwd : memeriksa daftar user
+-> sudo apt-get remove --purge wget xxd unzip -y && sudo apt-get autoremove -y : --purge(menghapus file konfigurasi yang terkait)
+                                                                                 autoremove(menghapus depedensi terkait paket yang tidak diperlukan)
+-> dpkg -l : memriksa paket yang ada
+-> dpkg -l | grep wget : memeriksa paket tertentu (saran pakai ini)
+-> . : direktori saat ini
+-> .. : direktori diatas direktori saat ini dst
+-> ~ : home directory
+-> cut -d: -f1 /etc/passwd : memeriksa semua user yang ada di linux
+                             cut -> mengambil bagian tertentu
+                             -d: -> -d = delimiter(pemisah), disini pemisahnya ":"
+                             -f1 -> mengambil kolom pertama, disini "username"
+                             /etc/passwd -> tempat seluruh user kita berada
+-> whoami : memeriksa user mana yang sekarang sedang aktif
+
+-> sudo apt install -y wget unzip xxd && mkdir artists_who_can_sing && cd artists_who_can_sing
+-> wget "https://drive.usercontent.google.com/u/0/uc?id=1lV1HVmPTY_BOAK6ToXymRu7V5eVfR0ut&export=download" -O tutorials.zip :
+        URL -> bisa didapat setelah menekan tombol unduh
+        -O tutorials.zip -> menamakan file unduhan dengan nama "tutorials.zip"
+-> mkdir singing_tutorials && unzip tutorials.zip -d singing_tutorials : -d = ke
+-> cd singing_tutorials && ls -a
+-> find . -name "*opera*NBAYoungboy*" -exec grep -ho "FLAG{.*}" {} + | tee ../flag.txt :
+        -name ".." -> pola yang dicari
+        -exec -> menjalankan perintah tambahan
+        -grep -> mengambil
+        -h -> tanpa nama file
+        -o "FLAG{.*}" -> onlymatch dari polanya | .* -> regex(untuk apapun diantara {})
+        {} -> placeholder untuk file yang didapatkan oleh find
+        + -> menjalankan grep dalam satu perintah untuk beberapa file sekaligus (ex grep "FLAG" file1.txt file2.txt file3.txt ...)
+        | tee -> menampilkan sekaligus menyimpan ke dalam file
+-> cd .. && wget "https://files.catbox.moe/9l4qu8" -O plsrunmeiamnotmalwarefr
+-> chmod +x plsrunmeiamnotmalwarefr && ./plsrunmeiamnotmalwarefr : 
+        chmod -> change mode (mengubah permission file/folder agar dapat dibaca, ditulis, atau dieksekusi oleh pengguna tertentu.)
+        +x -> menambahkan izin execute pada file agar bisa dijalankan sebagai program.
+        ./ -> menjalankan file
+-> ps aux | grep plsrunmeiamnotmalwarefr
+-> touch ransom.moolah && ls -l ransom.moolah : touch -> membuat file
+                                                ls -l <nama file> -> melihat kondisi file
+-> pkill -f plsrunmeiamnotmalwarefr && pgrep plsrunmeiamnotmalwarefr : -f -> karena "plsrunmeiamnotmalwarefr" >15 karakter,
+                                                                             jika tidak menggunakan -f akan error karena >15 karakter
+-> sudo useradd -m -s /bin/bash yabadabadoo && sudo usermod -oG sudo yabadabadoo && getent group sudo | grep yabadabadoo && sudo passwd yabadabadoo && su - yabadabadoo :
+        useradd -> menambahkan user
+        -m -> menambahkan home directory
+        -s /bin/bash -> mengatur default shell (agar bisa dijalankan di terminal)
+        usermod -> user modification
+        -o -> agar ketika ada user berada di grup lain, tidak hilang saat di masukkan ke group yang baru
+        -G sudo -> masukkan ke sudoers group
+        getent <database>-> get entries (memeriksa user yang ada di grup tertentu)
+                 -> contoh : getent passwd => sama aja dengan cat /etc/passwd
+        sudo passwd <nama user> -> membuat password baru untuk user
+        su - <nama user> -> switch user : login ke user
+-> mkdir fufufafa && chmod 700 fufufafa && ls -ld fufufafa && cd fufufafa : 
+        chmod 700 -> owner(7) => rwx => owner bisa read, write, dan execute 
+                     group(0) => group lain tidak punya izin
+                     others(0) => pengguna lain tidak punya izin
+        ls -ld <folder> -> drwx------ 2 yabadabadoo yabadabadoo 4096 Mar  2 11:05 fufufafa
+                        -> rwx => owner
+                           --- => group
+                           --- => others(pengguna lain)
+-> tree <path> : untuk melihat isi folder tertentu berbentuk cabang (ex. tree /var/tmp/pls_solve_this_puzzle)
+-> grep -rP '^[0-9A-Fa-f]{8}: (?!0000( 0000){7}$)([0-9A-Fa-f]{4} ){7}[0-9A-Fa-f]{4}$' /var/tmp/pls_solve_this_puzzle/ | awk -F ':' '!seen[$3]++ {print $3}' | tac | tr -d '\n' | sed 's/0000//g' | sed 's/ //g' | xxd -r -p > flag2.txt
+-> sudo cp /home/aryarefman//artists_who_can_sing/flag.txt ~/fufufafa : karena berada di beda user kita harus menambahkan path rootnya /home/aryarefman
+                                                                        cp <alamat file yang dicopy> <tujuan>
+-> rm -rf /var/tmp/pls_solve_this_puzzle
+
+GITHUB
+=> memasang paket gh
+   sudo snap install gh
+   snap list gh
+   /snap/bin/gh --version
+
+   echo 'export PATH="/snap/bin:$PATH"' >> ~/.bashrc
+   source ~/.bashrc -> menambahkan ke path agar bisa menggunakan gh --version
+
+   gh --version
+
+=> menjalankan git
+# 1. Login ke GitHub CLI
+gh auth login
+
+# 2. Buat repository di GitHub dengan default branch "main"
+gh repo create Pelatihan-Linux-2025 --default-branch=main
+
+# 3. Inisialisasi repository Git di lokal
+git init
+
+# 4. Pastikan branch utama adalah "main"
+git branch -M main
+
+# 5. Tambahkan remote repository GitHub
+git remote add origin https://github.com/aryarefman/Pelatihan-Linux-2025.git
+
+# 6. Tambahkan semua file ke staging
+git add .
+
+# 7. Commit perubahan dengan pesan
+git commit -m "Operating linux is so ez fr fr"
+
+# 8. Push ke repository GitHub
+git push -u origin main
