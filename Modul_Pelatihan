@@ -32,6 +32,7 @@
         URL -> bisa didapat setelah menekan tombol unduh
         -O tutorials.zip -> menamakan file unduhan dengan nama "tutorials.zip"
                             -O -> output document
+                            usercontent -> 
 -> mkdir singing_tutorials && unzip tutorials.zip -d singing_tutorials : -d -> destination
 -> cd singing_tutorials && ls -a : -a -> all
 -> find . -name "*opera*NBAYoungboy*" -exec grep -ho "FLAG{.*}" {} + | tee ../flag.txt :
@@ -84,7 +85,7 @@
                                                                    "[0-9a-fA-F]{32,}" : mencari hexadecimal (search aja di stackoverflow)
 -> xxd /var/tmp/pls_solve_this_puzzle/helloo_47.html :
         jika didalamnya ada hax dump maka file tersebut adalah file biner (contoh hash dump: 00000040: 6462 3864 3765 3361 3035 3364 3720 202d)
--> grep -rP '^[0-9A-Fa-f]{8}: (?!0000( 0000){7}$)([0-9A-Fa-f]{4} ){7}[0-9A-Fa-f]{4}$' /var/tmp/pls_solve_this_puzzle/ | awk -F ':' '!seen[$3]++ {print $3}' | tac | tr -d '\n' | sed 's/0000//g' | sed 's/ //g' | xxd -r -p > flag2.txt :
+-> grep -rP '^[0-9A-Fa-f]{8}: (?!0000( 0000){7}$)([0-9A-Fa-f]{4} ){7}[0-9A-Fa-f]{4}$' /var/tmp/pls_solve_this_puzzle/ | awk -F ':' '!seen[$3]++ {print $3}' | tr -d '\n' | sed 's/0000//g' | sed 's/ //g' | xxd -r -p | tee flag2.txt :
         -r : rekursif
         -P : untuk pencocokan regex yang kompleks
         '^[0-9A-Fa-f]{8}: (?!0000( 0000){7}$)([0-9A-Fa-f]{4} ){7}[0-9A-Fa-f]{4}$' : regex 
@@ -148,5 +149,13 @@ git commit -m "Operating linux is so ez fr fr"
 # 8. Push ke repository GitHub
 git push -u origin main
 
+SSH
+ssh-keygen -t ed25519 -C "arya445refman@gmail.com"
 
-grep -rP '^[0-9A-Fa-f]{8}: (!?0000 (0000 ){7}$)([0-9A-Fa-f]{4} ){7}[0-9A-Fa-f]{4}$' /var/tmp/pls_solve_this_puzzle/ | awk -F ':' '!seen[$3]++ {print $3}' | tac | tr -d '\n' | sed 's/0000//g' | sed 's/ //g' | > flag2.txt 
+cat ~/.ssh/id_ed25519.pub
+
+ssh -T git@github.com
+
+git remote set-url origin git@github.com:aryarefman/Pelatihan-Linux-2025_1.git
+
+git push -u origin main
