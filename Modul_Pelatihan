@@ -25,12 +25,14 @@
                              -f1 -> mengambil kolom pertama, disini "username"
                              /etc/passwd -> tempat seluruh user kita berada
 -> whoami : memeriksa user mana yang sekarang sedang aktif
+-> -o : only matching
 
 -> sudo apt install -y wget unzip xxd && mkdir artists_who_can_sing && cd artists_who_can_sing
 -> wget "https://drive.usercontent.google.com/u/0/uc?id=1lV1HVmPTY_BOAK6ToXymRu7V5eVfR0ut&export=download" -O tutorials.zip :
         URL -> bisa didapat setelah menekan tombol unduh
         -O tutorials.zip -> menamakan file unduhan dengan nama "tutorials.zip"
--> mkdir singing_tutorials && unzip tutorials.zip -d singing_tutorials : -d = ke
+                            -O -> output document
+-> mkdir singing_tutorials && unzip tutorials.zip -d singing_tutorials : -d -> destination
 -> cd singing_tutorials && ls -a
 -> find . -name "*opera*NBAYoungboy*" -exec grep -ho "FLAG{.*}" {} + | tee ../flag.txt :
         -name ".." -> pola yang dicari
@@ -46,12 +48,17 @@
         chmod -> change mode (mengubah permission file/folder agar dapat dibaca, ditulis, atau dieksekusi oleh pengguna tertentu.)
         +x -> menambahkan izin execute pada file agar bisa dijalankan sebagai program.
         ./ -> menjalankan file
--> ps aux | grep plsrunmeiamnotmalwarefr
--> touch ransom.moolah && ls -l ransom.moolah : touch -> membuat file
+-> ls -l (ngecek apakah sebuah folder executable)
+-> ps aux
+-> touch ransom.moolah && ps aux : touch -> membuat file
                                                 ls -l <nama file> -> melihat kondisi file
--> pkill -f plsrunmeiamnotmalwarefr && pgrep plsrunmeiamnotmalwarefr : -f -> karena "plsrunmeiamnotmalwarefr" >15 karakter,
-                                                                             jika tidak menggunakan -f akan error karena >15 karakter
--> sudo useradd -m -s /bin/bash yabadabadoo && sudo usermod -oG sudo yabadabadoo && getent group sudo | grep yabadabadoo && sudo passwd yabadabadoo && su - yabadabadoo :
+                                                file-nya difunct(zombie) -> sehingga kita harus menghapus parrentnya(induk)
+-> ps -ef -> melihat induk dari file yang ada 
+-> pkill -P <PID> && ps aux : -f -> karena "plsrunmeiamnotmalwarefr" >15 karakter,
+                                                      jika tidak menggunakan -f akan error karena >15 karakter
+-> kill -9 <PID> && ps aux
+
+-> sudo useradd -m -s /bin/bash yabadabadoo && sudo usermod -oG sudo yabadabadoo && groups yabadabadoo && sudo passwd yabadabadoo && su - yabadabadoo :
         useradd -> menambahkan user
         -m -> menambahkan home directory
         -s /bin/bash -> mengatur default shell (agar bisa dijalankan di terminal)
@@ -71,10 +78,39 @@
                            --- => group
                            --- => others(pengguna lain)
 -> tree <path> : untuk melihat isi folder tertentu berbentuk cabang (ex. tree /var/tmp/pls_solve_this_puzzle)
--> grep -rP '^[0-9A-Fa-f]{8}: (?!0000( 0000){7}$)([0-9A-Fa-f]{4} ){7}[0-9A-Fa-f]{4}$' /var/tmp/pls_solve_this_puzzle/ | awk -F ':' '!seen[$3]++ {print $3}' | tac | tr -d '\n' | sed 's/0000//g' | sed 's/ //g' | xxd -r -p > flag2.txt
+-> grep -r -oE "[0-9a-fA-F]{32,}" /var/tmp/pls_solve_this_puzzle : -r : rekursif
+                                                                   -o : only matching
+                                                                   -E : extended regex (memungkinkan penggunaan pola yang lebih kompleks, disini 32) 
+                                                                   "[0-9a-fA-F]{32,}" : mencari hexadecimal (search aja di stackoverflow)
+-> xxd /var/tmp/pls_solve_this_puzzle/helloo_47.html :
+        jika didalamnya ada hax dump maka file tersebut adalah file biner (contoh hash dump: 00000040: 6462 3864 3765 3361 3035 3364 3720 202d)
+-> grep -rP '^[0-9A-Fa-f]{8}: (?!0000( 0000){7}$)([0-9A-Fa-f]{4} ){7}[0-9A-Fa-f]{4}$' /var/tmp/pls_solve_this_puzzle/ | awk -F ':' '!seen[$3]++ {print $3}' | tac | tr -d '\n' | sed 's/0000//g' | sed 's/ //g' | xxd -r -p > flag2.txt :
+        -r : rekursif
+        -P : untuk pencocokan regex yang kompleks
+        '^[0-9A-Fa-f]{8}: (?!0000( 0000){7}$)([0-9A-Fa-f]{4} ){7}[0-9A-Fa-f]{4}$' : regex 
+                                                                                    (?!0000( 0000){7}$) -> (?! ) : nagative lookahead
+                                                                                    [0-9A-Fa-f]{4}  : 4 karakrter awal hexadesimal
+                                                                                    {7} : setelah blok pertama ada 7 blok yang dipisahkan oleh spasi
+                                                                                    [0-9A-Fa-f]{4} : memastikan blok terakhir terdiri dari 4 karakter hexadesimal
+                                                                                    $ : memastikan berada di baris terakhir
+        awk -F ':' '!seen[$3]++ {print $3}' : -> delimiter ':'
+                                              -> -F : field saparator
+                                              -> !seen[$3]++ : ngecek apakah kolm ke-3 sudah muncul
+                                              -> {print $3} : ngeprint isi kolom ke-3
+        tac : membalikkan urutan baris (concatenate reverse)
+        tr -d '\n' : menghilangkan new line jadi semuanya dalam satu baris (translate/d = delete)
+        sed 's/0000//g' : menghapus semua blok yang 0000
+        sed 's/ //g' : menghapus spasi (stream editr)
+        xxd -r -p : mengubah teks hexadesimal menjadi teks asli 
+                    xxd -> hex dump
+                    -r -> reverse (mengubah hexdump menjadi teks asli)
+                    -p -> dengan format plain text tanpa offset
+        's/0000//g' : s -> substitute
+                      g -> global
+
 -> sudo cp /home/aryarefman//artists_who_can_sing/flag.txt ~/fufufafa : karena berada di beda user kita harus menambahkan path rootnya /home/aryarefman
                                                                         cp <alamat file yang dicopy> <tujuan>
--> rm -rf /var/tmp/pls_solve_this_puzzle
+-> sudo rm -rf /var/tmp/pls_solve_this_puzzle
 
 GITHUB
 => memasang paket gh
@@ -92,7 +128,7 @@ GITHUB
 gh auth login
 
 # 2. Buat repository di GitHub dengan default branch "main"
-gh repo create Pelatihan-Linux-2025 --default-branch=main
+gh repo create Pelatihan-Linux-2025 --public --default-branch=main
 
 # 3. Inisialisasi repository Git di lokal
 git init
