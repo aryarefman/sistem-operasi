@@ -33,7 +33,7 @@
         -O tutorials.zip -> menamakan file unduhan dengan nama "tutorials.zip"
                             -O -> output document
 -> mkdir singing_tutorials && unzip tutorials.zip -d singing_tutorials : -d -> destination
--> cd singing_tutorials && ls -a
+-> cd singing_tutorials && ls -a : -a -> all
 -> find . -name "*opera*NBAYoungboy*" -exec grep -ho "FLAG{.*}" {} + | tee ../flag.txt :
         -name ".." -> pola yang dicari
         -exec -> menjalankan perintah tambahan
@@ -52,7 +52,7 @@
 -> ps aux
 -> touch ransom.moolah && ps aux : touch -> membuat file
                                                 ls -l <nama file> -> melihat kondisi file
-                                                file-nya difunct(zombie) -> sehingga kita harus menghapus parrentnya(induk)
+                                                file-nya difunct(zombie) -> file sudah berhenti tapi masih ada di dalam parentnya, sehingga kita harus menghapus parrentnya(induk)
 -> ps -ef -> melihat induk dari file yang ada 
 -> pkill -P <PID> && ps aux : -f -> karena "plsrunmeiamnotmalwarefr" >15 karakter,
                                                       jika tidak menggunakan -f akan error karena >15 karakter
@@ -100,7 +100,7 @@
         tac : membalikkan urutan baris (concatenate reverse)
         tr -d '\n' : menghilangkan new line jadi semuanya dalam satu baris (translate/d = delete)
         sed 's/0000//g' : menghapus semua blok yang 0000
-        sed 's/ //g' : menghapus spasi (stream editr)
+        sed 's/ //g' : menghapus spasi (stream editor)
         xxd -r -p : mengubah teks hexadesimal menjadi teks asli 
                     xxd -> hex dump
                     -r -> reverse (mengubah hexdump menjadi teks asli)
@@ -147,3 +147,6 @@ git commit -m "Operating linux is so ez fr fr"
 
 # 8. Push ke repository GitHub
 git push -u origin main
+
+
+grep -rP '^[0-9A-Fa-f]{8}: (!?0000 (0000 ){7}$)([0-9A-Fa-f]{4} ){7}[0-9A-Fa-f]{4}$' /var/tmp/pls_solve_this_puzzle/ | awk -F ':' '!seen[$3]++ {print $3}' | tac | tr -d '\n' | sed 's/0000//g' | sed 's/ //g' | > flag2.txt 
