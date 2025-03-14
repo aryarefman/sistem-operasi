@@ -30,6 +30,12 @@ C. “Unceasing Spirit” → Karena diperlukan pengecekan keaslian “Player”
 
 D. “The Eternal Realm of Light” → Password adalah kunci akses ke dunia Arcaea. Untuk menjaga keamanan "Player", password perlu disimpan dalam bentuk yang tidak mudah diakses. Gunakan algoritma hashing sha256sum yang memakai static salt (bebas).
 
+```bash
+nano terminal.sh && chmod +x terminal.sh
+```
+- `nano terminal.sh && chmod +x terminal.sh`: Membuat script `terminal.sh` sekaligus mengubah permissionnya menjadi executable
+<br>
+
 --login.sh--
 ```bash
 #!/bin/bash
@@ -79,6 +85,7 @@ done
 		- `exit 0` → Menghentikan skrip dengan kode sukses
 	- `else`
  		- `echo "❌ Incorrect email or password! Please try again."` → Jika password tidak cocok, tampilkan pesan error
+<br>
 
 --register.sh---
 ```bash
@@ -139,6 +146,28 @@ done
 	- `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$` → Regex (email harus memiliki format `nama@domain.com`)
 - `validate_password()` → Memvalidasi apakah password memenuhi kriteria keamanan
 	- `[[ "$1" =~ [A-Z] ]] && [[ "$1" =~ [a-z] ]] && [[ "$1" =~ [0-9] ]] && [[ ${#1} -ge 8 ]]` → Regex (password harus memiliki minimal 8 karakter, harus mengandung huruf besar (A-Z), harus mengandung huruf kecil (a-z), dan harus mengandung angka (0-9)
+- `while true; do` → Memulai loop infinite untuk proses registrasi
+	- `read -p "Enter email: " email` → Meminta input email dari pengguna
+	- `if ! validate_email "$email"; then` → Memeriksa apakah format email valid
+ 		- `echo "❌ Invalid email format!"` → Jika tidak valid, tampilkan pesan "❌ Invalid email format!"
+  		- `continue` → ulangi hingga berhasil 
+	- `if grep -q "^$email," "$DB_PATH"; then` → Mengecek apakah email sudah terdaftar
+		- `echo "❌ Email is already registered!"` → Jika sudah terdaftar, tampilkan pesan "❌ Email is already registered!" dan ulangi
+		- `continue` → ulangi hingga berhasil
+	- `read -p "Enter username: " username` → Meminta input username
+	- `if [[ -z "$username" ]]; then` → Mengecek apakah username kosong
+		- `echo "❌ Username cannot be empty!"` → Jika kosong, tampilkan pesan "❌ Username cannot be empty!"
+		- `continue` → ulangi hingga berhasil
+	- `while true; do` → Loop untuk memastikan password yang dimasukkan valid
+		- `read -s -p "Enter password: " password` → Meminta input password dalam mode silent (tidak ditampilkan)
+		- `if ! validate_password "$password"; then` → Memeriksa apakah password memenuhi kriteria keamanan
+			- `echo "❌ Password must have at least 8 characters, 1 uppercase letter, 1 lowercase letter, and 1 number!"` → Jika tidak memenuhi, tampilkan pesan error
+   			- `continue` → ulangi hingga berhasil
+	- `hashed_password=$(echo -n "$password$SALT" | sha256sum | awk '{print $1}')` → Mengenkripsi password dengan SHA-256 setelah ditambahkan salt
+	- `echo "$email,$username,$hashed_password" >> "$DB_PATH"` → Menyimpan data pengguna (email, username, hashed password) ke dalam database
+	- `echo "✅ Registration successful!"` → Menampilkan pesan sukses
+	- `break` → Menghentikan loop registrasi setelah sukses
+<br>
   
 --terminal.sh--
 ```bash
@@ -186,6 +215,55 @@ case $choice in
         ;;
 esac
 ```
+- `clear` → Menghapus tampilan sebelumnya agar layar bersih sebelum menampilkan menu baru
+- `cat << "EOF" ... EOF` → Menampilkan ASCII art sebagai header
+- `echo "..."` → Menampilkan menu utama dengan opsi
+	- Opsi yang tersedia:
+		- 1 → Register akun baru
+		- 2 → Login ke akun yang sudah ada
+		- 3 → Keluar dari Arcaea Terminal
+- `printf "\n> Enter option [1-3]: "` → Meminta input pengguna
+	- `read choice` → Menyimpan pilihan pengguna dalam variabel choice
+- `case $choice in` → Mengeksekusi perintah berdasarkan pilihan pengguna
+	- `1)` `bash register.sh` → Menjalankan `register.sh` untuk registrasi akun baru
+	- `2)` `bash login.sh` → Menjalankan `login.sh` untuk login pengguna
+		- `if [ $? -eq 0 ]; then` → Jika login berhasil
+  		- `bash ./scripts/manager.sh` → maka `manager.sh` akan dijalankan
+	- `3)` `echo -e "\n👋 Exiting Arcaea Terminal..."` → Menampilkan pesan keluar dan mengakhiri skrip
+	- `*)` `echo -e "\n❌ Invalid choice. Please enter a number between 1 and 3."` → Menampilkan pesan error jika input tidak valid
+<br>
+
+E. “The Brutality of Glass” → Setelah sukses login, "Player" perlu memiliki akses ke sistem pemantauan sumber daya. Sistem harus dapat melacak penggunaan CPU (dalam persentase) yang menjadi representasi “Core” di dunia “Arcaea”. Pastikan kalian juga bisa melacak “terminal” yang digunakan oleh “Player”, yaitu CPU Model dari device mereka.
+
+Lokasi shell script: `./scripts/core_monitor.sh`
+
+```bash
+nano ./scripts/core_monitor.sh && chmod +x ./scripts/core_monitor.sh
+```
+<br>
+
+F. “In Grief and Great Delight” → Selain CPU, “fragments” juga perlu dipantau untuk memastikan equilibrium dunia “Arcaea”. RAM menjadi representasi dari “fragments” di dunia “Arcaea”, yang dimana dipantau dalam persentase usage, dan juga penggunaan RAM sekarang. 
+
+Lokasi shell script: `./scripts/frag_monitor.sh`
+
+```bash
+nano ./scripts/frag_monitor.sh && chmod +x ./scripts/frag_monitor.sh
+```
+<br>
+
+G. “On Fate's Approach” → Pemantauan yang teratur dan terjadwal sangat penting untuk mendeteksi anomali. Crontab manager (suatu menu) memungkinkan "Player" untuk mengatur jadwal pemantauan sistem. 
+- Hal yang harus ada di fungsionalitas menu:
+	- Add/Remove CPU [Core] Usage
+	- Add/Remove RAM [Fragment] Usage
+	- View Active Jobs
+
+Lokasi shell script: `./scripts/manager.sh`
+
+```bash
+nano ./scripts/manager.sh && chmod +x ./scripts/manager.sh
+```
+<br>
+
 
 
 ## Soal 4
