@@ -8,10 +8,190 @@ Anggota IT08:
 | Nadia Fauziazahra Kusumastuti | 5027241094 |
 ----
 
+## Soal 2
+[Author: Nathan / etern1ty]
+
+Anda merupakan seorang “Observer”, dari banyak dunia yang dibuat dari ingatan yang berbentuk “fragments” - yang berisi kemungkinan yang dapat terjadi di dunia lain. Namun, akhir-akhir ini terdapat anomali-anomali yang seharusnya tidak terjadi, perpindahan “fragments” di berbagai dunia, yang kemungkinan terjadi dikarenakan seorang “Seeker” yang berubah menjadi “Ascendant”, atau dalam kata lain, “God”. Tidak semua “Observer” menjadi “Player”, tetapi disini anda ditugaskan untuk ikut serta dalam menjaga equilibrium dari dunia-dunia yang terbuat dari “Arcaea”. 
+
+A. “First Step in a New World” → Tugas pertama, dikarenakan kejadian “Axiom of The End” yang semakin mendekat, diperlukan sistem untuk mencatat “Player” aktif agar terpisah dari “Observer”. Buatlah dua shell script, `login.sh` dan `register.sh`, yang dimana database “Player” disimpan di `/data/player.csv`. Untuk register, parameter yang dipakai yaitu email, username, dan password. Untuk login, parameter yang dipakai yaitu email dan password.
+
+```bash
+nano login.sh && chmod +x login.sh
+nano register.sh && chmod +x register.sh
+```
+- `nano login.sh && chmod +x login.sh`: Membuat script `login.sh` sekaligus mengubah permissionnya menjadi executable
+- `nano register.sh && chmod +x register.sh`: Membuat script `register.sh` sekaligus mengubah permissionnya menjadi executable
+<br>
+
+B. “Radiant Genesis” → Sistem login/register untuk para "Player" tentunya memiliki constraint, yaitu validasi email dan password. 
+Email harus memiliki format yang benar dengan tanda @ dan titik, sementara password harus memiliki minimal 8 karakter, setidaknya satu huruf kecil, satu huruf besar, dan satu angka untuk menjaga keamanan data di dunia “Arcaea”.
+
+C. “Unceasing Spirit” → Karena diperlukan pengecekan keaslian “Player” yang aktif, maka diperlukan sistem untuk pencegahan duplikasi “Player”. Jadikan sistem login/register tidak bisa memakai email yang sama (email = unique), tetapi tidak ada pengecekan tambahan untuk username.
+
+D. “The Eternal Realm of Light” → Password adalah kunci akses ke dunia Arcaea. Untuk menjaga keamanan "Player", password perlu disimpan dalam bentuk yang tidak mudah diakses. Gunakan algoritma hashing sha256sum yang memakai static salt (bebas).
+
+--login.sh--
+```bash
+#!/bin/bash
+
+DB_PATH="/data/player.csv"
+SALT="static_salt"
+
+while true; do
+    read -p "Enter email: " email
+    read -s -p "Enter password: " password
+    echo ""
+
+    hashed_password=$(echo -n "$password$SALT" | sha256sum | awk '{print $1}')
+    user_data=$(grep "^$email," "$DB_PATH")
+
+    if [[ -z "$user_data" ]]; then
+        echo "❌ Incorrect email or password! Please try again."
+        continue
+    fi
+
+    stored_password=$(echo "$user_data" | cut -d',' -f3)
+
+    if [[ "$hashed_password" == "$stored_password" ]]; then
+        username=$(echo "$user_data" | cut -d',' -f2)
+        echo "✅ Login successful! Welcome, $username"
+        exit 0
+    else
+        echo "❌ Incorrect email or password! Please try again."
+    fi
+done
+```
+- `DB_PATH="/data/player.csv"` → Menentukan lokasi file database (player.csv) yang menyimpan informasi pengguna
+- `SALT="static_salt"` → Mendefinisikan salt statis untuk meningkatkan keamanan hashing password
+- `while true; do` → Memulai loop infinite yang akan terus berjalan sampai pengguna berhasil login
+	- `read -p "Enter email: " email` → Meminta pengguna memasukkan email
+	- `read -s -p "Enter password: " password` → Meminta pengguna memasukkan password secara silent mode (tanpa terlihat di layar)
+	- `echo ""` → Mencetak baris kosong untuk estetika
+	- `hashed_password=$(echo -n "$password$SALT" | sha256sum | awk '{print $1}')` → Menggabungkan password dengan salt, kemudian mengenkripsinya menggunakan SHA-256
+	- `user_data=$(grep "^$email," "$DB_PATH")` → Mencari baris dalam database (player.csv) yang memiliki email yang cocok di awal baris
+	- `if [[ -z "$user_data" ]]; then` → Mengecek apakah email ditemukan dalam database
+		- `echo "❌ Incorrect email or password! Please try again."` → Jika tidak ditemukan, tampilkan pesan error
+ 		- `continue` → Kembali ke awal loop untuk meminta input ulang
+	- `stored_password=$(echo "$user_data" | cut -d',' -f3)` → Mengambil password terenkripsi yang tersimpan di database (kolom ke-3)
+	- `if [[ "$hashed_password" == "$stored_password" ]]; then` → Membandingkan password yang dimasukkan dengan yang tersimpan di database
+		- `username=$(echo "$user_data" | cut -d',' -f2)` → Mengambil username (kolom ke-2)
+		- `echo "✅ Login successful! Welcome, $username"` → Menampilkan pesan login berhasil
+		- `exit 0` → Menghentikan skrip dengan kode sukses
+	- `else`
+ 		- `echo "❌ Incorrect email or password! Please try again."` → Jika password tidak cocok, tampilkan pesan error
+
+--register.sh---
+```bash
+#!/bin/bash
+
+DB_PATH="/data/player.csv"
+SALT="static_salt"
+
+touch "$DB_PATH"
+
+validate_email() {
+    [[ "$1" =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]
+}
+
+validate_password() {
+    [[ "$1" =~ [A-Z] ]] && [[ "$1" =~ [a-z] ]] && [[ "$1" =~ [0-9] ]] && [[ ${#1} -ge 8 ]]
+}
+
+while true; do
+    read -p "Enter email: " email
+    if ! validate_email "$email"; then
+        echo "❌ Invalid email format!"
+        continue
+    fi
+
+    if grep -q "^$email," "$DB_PATH"; then
+        echo "❌ Email is already registered!"
+        continue
+    fi
+
+    read -p "Enter username: " username
+    if [[ -z "$username" ]]; then
+        echo "❌ Username cannot be empty!"
+        continue
+    fi
+
+    while true; do
+        read -s -p "Enter password: " password
+        echo ""
+        if ! validate_password "$password"; then
+            echo "❌ Password must have at least 8 characters, 1 uppercase letter, 1 lowercase letter, and 1 number!"
+            continue
+        fi
+        break
+    done
+
+    hashed_password=$(echo -n "$password$SALT" | sha256sum | awk '{print $1}')
+    echo "$email,$username,$hashed_password" >> "$DB_PATH"
+
+    echo "✅ Registration successful!"
+    break
+done
+```
+- `DB_PATH="/data/player.csv"` → Menentukan lokasi file database (player.csv) yang akan menyimpan informasi pengguna
+- `SALT="static_salt"` → Mendefinisikan salt statis untuk meningkatkan keamanan hashing password
+- `touch "$DB_PATH"` → Membuat file database jika belum ada
+- `validate_email()` → Memvalidasi apakah email yang dimasukkan sesuai dengan format email yang benar
+	- `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$` → Regex (email harus memiliki format `nama@domain.com`)
+- `validate_password()` → Memvalidasi apakah password memenuhi kriteria keamanan
+	- `[[ "$1" =~ [A-Z] ]] && [[ "$1" =~ [a-z] ]] && [[ "$1" =~ [0-9] ]] && [[ ${#1} -ge 8 ]]` → Regex (password harus memiliki minimal 8 karakter, harus mengandung huruf besar (A-Z), harus mengandung huruf kecil (a-z), dan harus mengandung angka (0-9)
+  
+--terminal.sh--
+```bash
+#!/bin/bash
+
+clear
+
+cat << "EOF"
+   ___   ___  ________   _______     ______  __________________  ___
+  / _ | / _ \/ ___/ _ | / __/ _ |   / __/\ \/ / __/_  __/ __/  |/  /
+ / __ |/ , _/ /__/ __ |/ _// __ |  _\ \   \  /\ \  / / / _// /|_/ /
+/_/ |_/_/|_|\___/_/ |_/___/_/ |_| /___/   /_/___/ /_/ /___/_/  /_/
+⠀⠀⠀⠀⠀⠀⠀⠀⠀
+EOF
+
+echo "          ┌───────────────────────────────────────┐"
+echo "          │            ARCAEA TERMINAL            │"
+echo "          ├───────┬───────────────────────────────┤"
+echo "          │  ID   │ OPTION                        │"
+echo "          ├───────┼───────────────────────────────┤"
+echo "          │   1   │ Register New Account          │"
+echo "          │   2   │ Login to Existing Account     │"
+echo "          │   3   │ Exit Arcaea Terminal          │"
+echo "          └───────┴───────────────────────────────┘"
+
+printf "\n> Enter option [1-3]: "
+read choice
+
+case $choice in
+    1)
+        bash register.sh
+        ;;
+    2)
+        bash login.sh
+        if [ $? -eq 0 ]; then
+            bash ./scripts/manager.sh
+        fi
+        ;;
+    3)
+        echo -e "\n👋 Exiting Arcaea Terminal..."
+        exit 0
+        ;;
+    *)
+        echo -e "\n❌ Invalid choice. Please enter a number between 1 and 3."
+        ;;
+esac
+```
+
+
 ## Soal 4
 [Author: Amoes / winter]
 
-Pada suatu hari, anda diminta teman anda untuk membantunya mempersiapkan diri untuk turnamen Pokemon “*Generation 9 OverUsed 6v6 Singles*” dengan cara membuatkan tim yang cocok untuknya. Tetapi, anda tidak memahami meta yang dimainkan di turnamen tersebut. Untungnya, seorang informan memberikan anda data pokemon_usage.csv yang bisa anda download dan analisis. 
+Pada suatu hari, anda diminta teman anda untuk membantunya mempersiapkan diri untuk turnamen Pokemon “*Generation 9 OverUsed 6v6 Singles*” dengan cara membuatkan tim yang cocok untuknya. Tetapi, anda tidak memahami meta yang dimainkan di turnamen tersebut. Untungnya, seorang informan memberikan anda data [pokemon_usage.csv](https://drive.google.com/file/d/1n-2n_ZOTMleqa8qZ2nB8ALAbGFyN4-LJ/view?usp=sharing) yang bisa anda download dan analisis. 
 
 - Data tersebut memiliki banyak kolom:
     - Nama Pokemon
@@ -32,10 +212,11 @@ wget "https://drive.usercontent.google.com/u/0/uc?id=1n-2n_ZOTMIeqa8qZ2nB8ALAbGF
 <br>
 
 ```bash
-nano pokemon_analysis.sh
+nano pokemon_analysis.sh && chmod +x pokemon_analysis.sh
 ```
 - `nano`: Editor teks berbasis terminal di Linux
 - `pokemon_analysis.sh`: Nama file skrip shell yang akan dibuat dan diedit menggunakan `nano`
+- `chmod +x pokemon_analysis.sh`: Mengatur script menjadi executable
 - Perintah ini membuka editor `nano` untuk membuat atau mengedit skrip bernama `pokemon_analysis.sh`
 
 dengan fitur sebagai berikut:
@@ -559,7 +740,7 @@ if [[ ! -f "$1" ]]; then
     exit 1
 fi
 ```
-- Mengatasi file yang tidak ada
+- Mengatasi error jika file tidak ditemukan
 
 ```bash
 if [[ -z "$OPTION" ]]; then
@@ -567,7 +748,7 @@ if [[ -z "$OPTION" ]]; then
 	exit 1
 fi
 ```
-- Mengatasi argumen kedua yang tidak ada
+- Mengatasi error jika argumen kedua tidak ditemukan
 
 ```bash
     *)
@@ -578,7 +759,7 @@ fi
         exit 1
         ;;
 ```
-- Mengatasi argumen ketiga yang tidak ada
+- Mengatasi error jika argumen ketiga tidak ditemukan
 <br>
 
 F. Help screen yang menarik → Untuk memberikan petunjuk yang baik pada pengguna program, anda berpikir untuk membuat sebuah help screen yang muncul ketika mengetik -h atau --help sebagai command yang dijalankan. Kriteria yang harus ada dalam help screen pada program ini adalah:
