@@ -36,7 +36,7 @@ nano terminal.sh && chmod +x terminal.sh
 - `nano terminal.sh && chmod +x terminal.sh`: Membuat script `terminal.sh` sekaligus mengubah permissionnya menjadi executable
 <br>
 
---login.sh--
+-- login.sh --
 ```bash
 #!/bin/bash
 
@@ -87,7 +87,7 @@ done
  		- `echo "❌ Incorrect email or password! Please try again."` → Jika password tidak cocok, tampilkan pesan error
 <br>
 
---register.sh---
+-- register.sh --
 ```bash
 #!/bin/bash
 
@@ -169,7 +169,7 @@ done
 	- `break` → Menghentikan loop registrasi setelah sukses
 <br>
   
---terminal.sh--
+-- terminal.sh --
 ```bash
 #!/bin/bash
 
@@ -264,7 +264,136 @@ nano ./scripts/manager.sh && chmod +x ./scripts/manager.sh
 ```
 <br>
 
+H. “The Disfigured Flow of Time” → Karena tentunya script yang dimasukkan ke crontab tidak mengeluarkan output di terminal, buatlah 2 log file, core.log dan fragment.log di folder ./log/, yang dimana masing-masing terhubung ke program usage monitoring untuk usage tersebut. 
+- Format log:
+	- CPU
+		- `[YYYY-MM-DD HH:MM:SS] - Core Usage [$CPU%] - Terminal Model [$CPU_Model]`
+	- RAM
+		- `[YYYY-MM-DD HH:MM:SS] - Fragment Usage [$RAM%] - Fragment Count [$RAM MB] - Details [Total: $TOTAL MB, Available: $AVAILABLE MB]`
+<br>
 
+-- core_monitor.sh --
+```bash
+#!/bin/bash
+
+LOG_FILE="$(dirname "$0")/../.logs/core.log"
+
+timestamp=$(date "+%Y-%m-%d %H:%M:%S")
+cpu_usage=$(awk '{u=$2+$4; t=$2+$4+$5; if (NR==1){u1=u; t1=t;} else print ($2+$4-u1) * 100 / (t-t1) "%"; }' \
+<(grep 'cpu ' /proc/stat) <(sleep 1; grep 'cpu ' /proc/stat))
+cpu_model=$(lscpu | grep "Model name" | cut -d':' -f2 | xargs)
+
+echo "[$timestamp] - Core Usage [$cpu_usage] - Terminal Model [$cpu_model]" >> "$LOG_FILE"
+```
+- `LOG_FILE="$(dirname "$0")/../.logs/core.log"` → Menentukan lokasi file log di dalam direktori `.logs/core.log`
+	- Variabel `LOG_FILE` menyimpan path file log tempat data akan dicatat
+	- Menggunakan `$(dirname "$0")` untuk memastikan path relatif terhadap lokasi script
+ - `timestamp=$(date "+%Y-%m-%d %H:%M:%S")` → Menggunakan perintah date untuk mendapatkan waktu dan tanggal saat ini dalam format `YYYY-MM-DD HH:MM:SS`
+ - `cpu_usage=$(awk '{u=$2+$4; t=$2+$4+$5; if (NR==1){u1=u; t1=t;} else print ($2+$4-u1) * 100 / (t-t1) "%"; }' <(grep 'cpu ' /proc/stat) <(sleep 1; grep 'cpu ' /proc/stat))`
+	- Mengambil informasi CPU dari `/proc/stat` sebelum dan sesudah jeda 1 detik
+	- `awk` menghitung persentase penggunaan CPU berdasarkan perubahan nilai user dan system time dibandingkan dengan total time
+ - `cpu_model=$(lscpu | grep "Model name" | cut -d':' -f2 | xargs)`
+	- Menggunakan perintah `lscpu` untuk mendapatkan informasi model CPU
+	- `grep "Model name"` menyaring hanya baris yang berisi model prosesor
+	- `cut -d':' -f2` mengambil nilai setelah titik dua ':'
+	- `xargs` membersihkan spasi yang tidak perlu.
+ - `echo "[$timestamp] - Core Usage [$cpu_usage] - Terminal Model [$cpu_model]" >> "$LOG_FILE"`
+ 	- Mencetak hasil ke dalam file log yang telah ditentukan sebelumnya dengan format `[YYYY-MM-DD HH:MM:SS] - Core Usage [$CPU%] - Terminal Model [$CPU_Model]`
+<br>
+
+-- frag_monitor.sh --
+```bash
+#!/bin/bash
+
+LOG_FILE="$(dirname "$0")/../.logs/fragment.log"
+
+timestamp=$(date "+%Y-%m-%d %H:%M:%S")
+ram_usage=$(free | awk '/Mem/ {printf "%.2f", $3/$2 * 100}')
+total_ram=$(free -m | awk '/Mem/ {print $2}')
+available_ram=$(free -m | awk '/Mem/ {print $7}')
+
+echo "[$timestamp] - Fragment Usage [$ram_usage%] - Fragment Count [$available_ram MB] - Details [Total: $total_ram MB, Available: $available_ram MB]" >> "$LOG_FILE"
+```
+- `LOG_FILE="$(dirname "$0")/../.logs/core.log"` → Menentukan lokasi file log di dalam direktori `.logs/core.log`
+	- Variabel `LOG_FILE` menyimpan path file log tempat data akan dicatat
+	- Menggunakan `$(dirname "$0")` untuk memastikan path relatif terhadap lokasi script
+- `timestamp=$(date "+%Y-%m-%d %H:%M:%S")` → Menggunakan perintah date untuk mendapatkan waktu dan tanggal saat ini dalam format `YYYY-MM-DD HH:MM:SS`
+- `ram_usage=$(free | awk '/Mem/ {printf "%.2f", $3/$2 * 100}')`
+ 	- Menggunakan perintah `free` untuk mendapatkan informasi RAM
+	- `awk` menghitung persentase RAM yang sedang digunakan dengan rumus `(RAM digunakan / RAM total) * 100`
+	- Hasilnya diformat dengan dua angka di belakang desimal
+- `total_ram=$(free -m | awk '/Mem/ {print $2}')`
+ 	- `free -m` menampilkan informasi RAM dalam satuan MB
+  	- `awk '/Mem/ {print $2}'` mengambil total RAM  
+- `available_ram=$(free -m | awk '/Mem/ {print $7}')`
+	- `awk '/Mem/ {print $7}'` mengambil jumlah RAM yang masih tersedia
+- `echo "[$timestamp] - Fragment Usage [$ram_usage%] - Fragment Count [$available_ram MB] - Details [Total: $total_ram MB, Available: $available_ram MB]" >> "$LOG_FILE"`
+	- Mencetak hasil ke dalam file log yang telah ditentukan sebelumnya dengan format `[YYYY-MM-DD HH:MM:SS] - Fragment Usage [$RAM%] - Fragment Count [$RAM MB] - Details [Total: $TOTAL MB, Available: $AVAILABLE MB]`
+<br>
+
+-- manager.sh --
+```bash
+#!/bin/bash
+
+SCRIPT_DIR=$(dirname "$(realpath "$0")")
+
+clear
+
+cat << "EOF"
+
+  ___             _        _      __  __
+ / __|_ _ ___ _ _| |_ __ _| |__  |  \/  |__ _ _ _  __ _ __ _ ___ _ _
+| (__| '_/ _ \ ' \  _/ _` | '_ \ | |\/| / _` | ' \/ _` / _` / -_) '_|
+ \___|_| \___/_||_\__\__,_|_.__/ |_|  |_\__,_|_||_\__,_\__, \___|_|
+                                                       |___/
+
+     ┌───────────────────────────────────────────────────────┐
+     │                  ARCAEA TERMINAL                      │
+     ├───────┬───────────────────────────────────────────────┤
+     │  ID   │ OPTION                                        │
+     ├───────┼───────────────────────────────────────────────┤
+     │   1   │ Add CPU - Core Monitor to Crontab             │
+     │   2   │ Add RAM - Fragment Monitor to Crontab         │
+     │   3   │ Remove CPU - Core Monitor from Crontab        │
+     │   4   │ Remove RAM - Fragment Monitor from Crontab    │
+     │   5   │ View All Scheduled Monitoring Jobs            │
+     │   6   │ Exit Arcaea Terminal                          │
+     └───────┴───────────────────────────────────────────────┘
+EOF
+
+printf "\n> Enter option [1-6]: "
+read choice
+
+case $choice in
+    1)
+        (crontab -l 2>/dev/null; echo "* * * * * /bin/bash $SCRIPT_DIR/core_monitor.sh") | crontab -
+        echo "✅ CPU Monitoring added to crontab."
+        ;;
+    2)
+        (crontab -l 2>/dev/null; echo "* * * * * /bin/bash $SCRIPT_DIR/frag_monitor.sh") | crontab -
+        echo "✅ RAM Monitoring added to crontab."
+        ;;
+    3)
+        crontab -l | grep -v "$SCRIPT_DIR/core_monitor.sh" | crontab -
+        echo "✅ CPU Monitoring removed from crontab."
+        ;;
+    4)
+        crontab -l | grep -v "$SCRIPT_DIR/frag_monitor.sh" | crontab -
+        echo "✅ RAM Monitoring removed from crontab."
+        ;;
+    5)
+        echo "📋 Active crontab schedules:"
+        crontab -l
+        ;;
+    6)
+        echo "👋 Exiting..."
+        exit 0
+        ;;
+    *)
+        echo "❌ Invalid choice."
+        ;;
+esac
+```
 
 ## Soal 4
 [Author: Amoes / winter]
