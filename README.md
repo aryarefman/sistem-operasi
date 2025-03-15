@@ -394,6 +394,35 @@ case $choice in
         ;;
 esac
 ```
+- `SCRIPT_DIR=$(dirname "$(realpath "$0")")`
+	- Mengambil path absolut dari direktori script yang sedang berjalan
+	- Ini memastikan bahwa perintah yang dijalankan akan selalu menggunakan path yang benar
+- `cat << "EOF" ... EOF`
+ 	- Menampilkan menu interaktif dalam format ASCII art
+	- Memberikan daftar opsi yang dapat dipilih oleh pengguna
+- `printf "\n> Enter option [1-6]: " ... read choice`
+ 	- Meminta pengguna memasukkan pilihan dari menu
+	- Disimpan dalam variabel `choice` untuk diproses lebih lanjut
+- `crontab -l 2>/dev/null; echo "* * * * * /bin/bash $SCRIPT_DIR/core_monitor.sh") | crontab -`
+	- Menambahkan script monitoring CPU agar dijalankan setiap menit oleh crontab
+	- Jika crontab kosong, perintah akan tetap berjalan tanpa error dengan `2>/dev/null` untuk menangani error yang mungkin muncul
+- `(crontab -l 2>/dev/null; echo "* * * * * /bin/bash $SCRIPT_DIR/frag_monitor.sh") | crontab -`
+	- Menambahkan script monitoring RAM agar dijalankan setiap menit oleh crontab
+	- Jika crontab kosong, perintah akan tetap berjalan tanpa error dengan `2>/dev/null` untuk menangani error yang mungkin muncul
+- `crontab -l 2>/dev/null | grep -v "$SCRIPT_DIR/core_monitor.sh" | crontab -`
+	- Menghapus hanya baris yang berisi `core_monitor.sh` dari crontab
+	- Menggunakan `grep -v` untuk menyaring crontab dan memperbaruinya tanpa menghapus tugas lainnya
+	- Jika crontab kosong, perintah tetap berjalan tanpa error
+- `crontab -l | grep -v "$SCRIPT_DIR/frag_monitor.sh" | crontab -`
+	- Menghapus hanya baris yang berisi `frag_monitor.sh` dari crontab
+	- Menggunakan `grep -v` untuk menyaring crontab dan memperbaruinya tanpa menghapus tugas lainnya
+	- Jika crontab kosong, perintah tetap berjalan tanpa error
+- `crontab -l 2>/dev/null`
+ 	- Menampilkan semua tugas yang sedang berjalan di crontab
+- `exit 0`
+	- Mengakhiri eksekusi script dan kembali ke shell
+<br>
+<br>
 
 ## Soal 4
 [Author: Amoes / winter]
