@@ -427,8 +427,9 @@ done
  	- Menampilkan semua tugas yang sedang berjalan di crontab
 - `exit 0`
 	- Mengakhiri eksekusi script dan kembali ke shell
+<br>
 
---- OUTPUT ---
+--- OUTPUT SOAL 2 ---
 ![image](https://github.com/user-attachments/assets/8d05e23e-998a-4067-9e48-8788cbe9050e)
 <br>
 
@@ -1090,3 +1091,46 @@ EOF
 		- `-f, --filter <type>` → Memfilter Pokémon berdasarkan tipe dan mengurutkan hasilnya berdasarkan Usage
 	- `print_centered "$LINE"` → Mencetak garis pemisah
 	- `exit 0` → Menghentikan skrip
+<br>
+
+--- OUTPUT SOAL 4 ---
+<br>
+
+-- `--info` --
+<br>
+
+![image](https://github.com/user-attachments/assets/4e74213f-43c3-4e75-88bc-3b95b14a9d6a)
+<br>
+<br>
+
+-- `--sort Usage%` --
+<br>
+
+![image](https://github.com/user-attachments/assets/693063c9-c60d-499c-aa90-4990d2f0e88a)
+<br>
+<br>
+
+-- `--search rotom` --
+<br>
+
+![image](https://github.com/user-attachments/assets/88838205-0473-4f8b-9ce7-62bd3c263a02)
+<br>
+<br>
+
+-- `--filter dark` --
+<br>
+
+![image](https://github.com/user-attachments/assets/2a99709b-a886-4714-b457-357619774761)
+<br>
+<br>
+
+-- `--help` --
+<br>
+
+
+
+
+![image](https://github.com/user-attachments/assets/95676842-5a2d-42ec-b392-c0b24aa45b40)
+<br>
+<br>
+
