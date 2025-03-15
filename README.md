@@ -337,9 +337,10 @@ echo "[$timestamp] - Fragment Usage [$ram_usage%] - Fragment Count [$available_r
 
 SCRIPT_DIR=$(dirname "$(realpath "$0")")
 
-clear
+while true; do
+        clear
 
-cat << "EOF"
+        cat << "EOF"
 
   ___             _        _      __  __
  / __|_ _ ___ _ _| |_ __ _| |__  |  \/  |__ _ _ _  __ _ __ _ ___ _ _
@@ -361,42 +362,47 @@ cat << "EOF"
      └───────┴───────────────────────────────────────────────┘
 EOF
 
-printf "\n> Enter option [1-6]: "
-read choice
+        printf "\n> Enter option [1-6]: "
+        read choice
 
-case $choice in
-    1)
-        (crontab -l 2>/dev/null; echo "* * * * * /bin/bash $SCRIPT_DIR/core_monitor.sh") | crontab -
-        echo "✅ CPU Monitoring added to crontab."
-        ;;
-    2)
-        (crontab -l 2>/dev/null; echo "* * * * * /bin/bash $SCRIPT_DIR/frag_monitor.sh") | crontab -
-        echo "✅ RAM Monitoring added to crontab."
-        ;;
-    3)
-        crontab -l | grep -v "$SCRIPT_DIR/core_monitor.sh" | crontab -
-        echo "✅ CPU Monitoring removed from crontab."
-        ;;
-    4)
-        crontab -l | grep -v "$SCRIPT_DIR/frag_monitor.sh" | crontab -
-        echo "✅ RAM Monitoring removed from crontab."
-        ;;
-    5)
-        echo "📋 Active crontab schedules:"
-        crontab -l
-        ;;
-    6)
-        echo "👋 Exiting..."
-        exit 0
-        ;;
-    *)
-        echo "❌ Invalid choice."
-        ;;
-esac
+        case $choice in
+        1)
+                (crontab -l 2>/dev/null; echo "* * * * * /bin/bash $SCRIPT_DIR/core_monitor.sh") | crontab -
+                echo "✅ CPU Monitoring added to crontab."
+                ;;
+        2)
+                (crontab -l 2>/dev/null; echo "* * * * * /bin/bash $SCRIPT_DIR/frag_monitor.sh") | crontab -
+                echo "✅ RAM Monitoring added to crontab."
+                ;;
+        3)
+                crontab -l | grep -v "$SCRIPT_DIR/core_monitor.sh" | crontab -
+                echo "✅ CPU Monitoring removed from crontab."
+                ;;
+        4)
+                crontab -l | grep -v "$SCRIPT_DIR/frag_monitor.sh" | crontab -
+                echo "✅ RAM Monitoring removed from crontab."
+                ;;
+        5)
+                echo "📋 Active crontab schedules:"
+                crontab -l
+                ;;
+        6)
+                echo "👋 Exiting..."
+                exit 0
+                ;;
+        *)
+                echo "❌ Invalid choice."
+                ;;
+        esac
+
+    printf "\nPress Enter to continue..."
+    read
+done
 ```
 - `SCRIPT_DIR=$(dirname "$(realpath "$0")")`
 	- Mengambil path absolut dari direktori script yang sedang berjalan
 	- Ini memastikan bahwa perintah yang dijalankan akan selalu menggunakan path yang benar
+- `while true; do ... done`: Setelah memilih salah satu opsi, kembali memilih menu
 - `cat << "EOF" ... EOF`
  	- Menampilkan menu interaktif dalam format ASCII art
 	- Memberikan daftar opsi yang dapat dipilih oleh pengguna
@@ -421,6 +427,35 @@ esac
  	- Menampilkan semua tugas yang sedang berjalan di crontab
 - `exit 0`
 	- Mengakhiri eksekusi script dan kembali ke shell
+
+--- OUTPUT ---
+![image](https://github.com/user-attachments/assets/8d05e23e-998a-4067-9e48-8788cbe9050e)
+<br>
+
+- REGISTER
+![image](https://github.com/user-attachments/assets/c43fb4a6-69e5-4d26-a56b-482d35beadb1)
+<br>
+
+- LOGIN
+![image](https://github.com/user-attachments/assets/997c4578-64ff-4513-8532-379fc348c4ce)
+<br>
+
+- ADD CPU
+![image](https://github.com/user-attachments/assets/0d8bb557-99ff-4d7b-93b6-7369ab24dff6)
+<br>
+
+![image](https://github.com/user-attachments/assets/6484e7a1-024f-40db-8438-03eecaa8142f)
+
+
+- ADD RAM
+![image](https://github.com/user-attachments/assets/b05c8c38-55bb-4bf4-bc05-692b6156b70b)
+<br>
+
+![image](https://github.com/user-attachments/assets/7f0755fe-4c07-44f0-8f14-969071b30a18)
+
+- btop
+![image](https://github.com/user-attachments/assets/04aadb03-ea43-4f71-929e-ca13c42a1268)
+	- Jika kita bandingkan hasil btop dengan CPU dan RAM, dapat dilihat bahwa hasil monitoring CPU dan RAM sudah akurat
 <br>
 <br>
 
