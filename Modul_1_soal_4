@@ -1,0 +1,186 @@
+## login.sh ##
+#!/bin/bash : 
+-> shebang line yang menunjukkan bahwa script dijalankan menggunakan bash shell
+
+DB_PATH="/data/player.csv" : 
+-> menyimpan kedalam variabel "DB_PATH" alamat dari "player.csv"
+
+SALT="static_salt" : 
+-> mendefinisikan variabel "SALT" dengan "static_salt" agar saat password di hash, hash setiap password berbeda"
+
+while true; do : 
+-> looping yang terus berjalan hingga user berhasil masuk
+
+read -p "Enter email: " email : 
+-> -p => prompt
+-> read => mengambil input pengguna
+-> mengambil input pengguna dan memasukkannya ke dalam variabel "email"
+
+read -s -p "Enter password: " password : 
+-> -s => silent
+-> mengambil input pengguna dan memasukkannya ke dalam variabel "password"
+
+echo "" : 
+-> mencetak baris kosong              
+
+hashed_password=$(echo -n "$password$SALT" | sha256sum | awk '{print $1}') :
+-> menggabungkan password dengan salt
+-> mengenkripsikan menggunakan SHA-256
+-> hasilnya disimpan di dalam variabel "hashed_password"   
+
+user_data=$(grep "^$email," "$DB_PATH") :
+-> mencocokkan email yang diinput dengan yang ada di database
+-> lalu masukkan datanya ke dalama variabel "user_data"
+
+if [[ -z "$user_data" ]]; then
+    echo "❌ Incorrect email or password! Please try again."
+    continue
+fi
+-> -z : zero_length
+-> Apabila user_data memilikan length=0/tidak ada, tampilkan error
+-> continue => ulang lagi dari awal
+
+stored_password=$(echo "$user_data" | cut -d',' -f3) : 
+-> jika user_datanya ditemukan dalam database
+-> menyimpan password yang ada di database kedalam variabel "stored_password" (kolom ke-3)
+
+if [[ "$hashed_password" == "$stored_password" ]]; then
+    username=$(echo "$user_data" | cut -d',' -f2)
+    echo "✅ Login successful! Welcome, $username"
+    exit 0
+else
+    echo "❌ Incorrect email or password! Please try again."
+fi
+-> jika hash_password barunya sama dengan yang ada di database, tampilkan "✅ Login successful! Welcome, $username"
+-> jika tidak ada tampilkan "❌ Incorrect email or password! Please try again.", kembali ke awal
+
+done
+
+
+## register.sh ##
+#!/bin/bash
+
+DB_PATH="/data/player.csv"
+SALT="static_salt"
+
+touch "$DB_PATH" :
+-> membuat file player.csv jika tidak ada
+
+validate_email() {
+    [[ "$1" =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]
+}
+-> fungsi untuk memvalidasi email
+-> ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ] => regex, dimana email harus memiliki format "nama@domain.com"
+
+validate_password() {
+    [[ "$1" =~ [A-Z] ]] && [[ "$1" =~ [a-z] ]] && [[ "$1" =~ [0-9] ]] && [[ ${#1} -ge 8 ]]
+}
+-> fungsi untuk memvalidasi password
+-> [A-Z] ]] && [[ "$1" =~ [a-z] ]] && [[ "$1" =~ [0-9] ]] && [[ ${#1} -ge 8 ] => regex, dimana untuk memvalidasi harus memiliki minimal 8 karakter, minimal 1 huruf kapital, minimal 1 huruf kecil, dan minimal 1 angka(0-9)
+
+while true; do
+
+read -p "Enter email: " email
+-> menginput email ke dalam variabel "email"
+
+if ! validate_email "$email"; then
+    echo "❌ Invalid email format!"
+    continue
+fi
+-> jika validate_emailnya tidak sesuai format, tampilkan error dan balik lagi ke awal
+
+if grep -q "^$email," "$DB_PATH"; then
+    echo "❌ Email is already registered!"
+    continue
+fi
+-> jika emailnya sudah tercatat di dalam data base, tampilkan error dan balik lagi ke awal
+
+read -p "Enter username: " username
+-> menginput username ke dalam variabel "username"
+
+if [[ -z "$username" ]]; then
+    echo "❌ Username cannot be empty!"
+    continue
+fi
+-> apabila user tidak memasukkan username, tampilkan error dan ulang lagi
+
+while true; do
+    read -s -p "Enter password: " password
+    echo ""
+    if ! validate_password "$password"; then
+        echo "❌ Password must have at least 8 characters, 1 uppercase letter, 1 lowercase letter, and 1 number!"
+        continue
+    fi
+    break
+done
+-> menginput password
+-> jika password tidak sesuai dengan formatnya, tampilkan error dan ulang lagi buat passwordnya hingga sesuai dengan format
+
+hashed_password=$(echo -n "$password$SALT" | sha256sum | awk '{print $1}')
+echo "$email,$username,$hashed_password" >> "$DB_PATH"
+-> apabila password sudah sesuai dengan format, gabungkan password dengan salt, lalu enkripsi menggunakan SHA-25
+-> simpan kedalam variabel "hashed_password"
+
+echo "✅ Registration successful!"
+break
+-> jika sudah sesuai semua tampilkan "✅ Registration successful!" dan berhenti
+
+done
+
+
+## terminal.sh ##
+#!/bin/bash
+
+clear :
+-> saat kita menjalankan scriptnya hilangkan tampilkan sebelumnya agar terlihat rapi
+
+cat << "EOF"
+   ___   ___  ________   _______     ______  __________________  ___
+  / _ | / _ \/ ___/ _ | / __/ _ |   / __/\ \/ / __/_  __/ __/  |/  /
+ / __ |/ , _/ /__/ __ |/ _// __ |  _\ \   \  /\ \  / / / _// /|_/ /
+/_/ |_/_/|_|\___/_/ |_/___/_/ |_| /___/   /_/___/ /_/ /___/_/  /_/
+⠀⠀⠀⠀⠀⠀⠀⠀⠀
+EOF
+-> menampilkan ascii art
+
+echo "          ┌───────────────────────────────────────┐"
+echo "          │            ARCAEA TERMINAL            │"
+echo "          ├───────┬───────────────────────────────┤"
+echo "          │  ID   │ OPTION                        │"
+echo "          ├───────┼───────────────────────────────┤"
+echo "          │   1   │ Register New Account          │"
+echo "          │   2   │ Login to Existing Account     │"
+echo "          │   3   │ Exit Arcaea Terminal          │"
+echo "          └───────┴───────────────────────────────┘"
+-> menampilkan opsi yang bisa dipilih
+
+printf "\n> Enter option [1-3]: "
+read choice
+-> mengambil input user dan dimasukkan ke dalam variabel "choice"
+
+case $choice in
+    1)
+        bash register.sh
+        ;;
+    2)
+        bash login.sh
+        if [ $? -eq 0 ]; then
+            bash ./scripts/manager.sh
+        fi
+        ;;
+    3)
+        echo -e "\n👋 Exiting Arcaea Terminal..."
+        exit 0
+        ;;
+    *)
+        echo -e "\n❌ Invalid choice. Please enter a number between 1 and 3."
+        ;;
+esac
+-> apabila choice==1, jalankan script "register.sh"
+-> apabila choice==2, jalankan script "login.sh"
+    -> dan jika user berhasil login, jalankan script "manager.sh"
+-> apabila choice==3, keluar dari terminal
+-> selain itu, tampilkan error "\n❌ Invalid choice. Please enter a number between 1 and 3."
+
+
+## core_monitor.sh ##

@@ -158,4 +158,6 @@ ssh -T git@github.com
 
 git remote set-url origin git@github.com:aryarefman/Pelatihan-Linux-2025_1.git
 
+git pull origin main --rebase
+
 git push -u origin main
